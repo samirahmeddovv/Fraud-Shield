@@ -12,7 +12,7 @@
 * **Backend:** Python, Flask
 * **Database:** Oracle Database (Oracle SQL Developer)
 * **Logic:** Rule-based fraud detection algorithms
-##👥 Authors
+## 👥 Authors
 *Samir Əhmədov (me) - Samir's GitHub
 *İlqare Katyalova - İlqare's GitHub
 
