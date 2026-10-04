@@ -13,6 +13,6 @@
 * **Database:** Oracle Database (Oracle SQL Developer)
 * **Logic:** Rule-based fraud detection algorithms
 ## 👥 Authors
-* **Samir Əhmədov (me)** - Samir's GitHub
+* **Samir Əhmədov (me)** - [Samir's GitHub](https://github.com/samirahmeddovv)
 * **İlqare Katyalova** - [İlqare's GitHub](https://github.com/withilq)
 
