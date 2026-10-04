@@ -14,5 +14,5 @@
 * **Logic:** Rule-based fraud detection algorithms
 ## 👥 Authors
 * **Samir Əhmədov (me)** - Samir's GitHub
-* **İlqare Katyalova** - İlqare's GitHub
+* **İlqare Katyalova** - [İlqare's GitHub](https://github.com/withilq)
 
