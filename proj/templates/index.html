@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudShield — Transaction Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0c10; --bg2: #111318; --bg3: #181c24;
+            --border: #232733;
+            --accent: #00e5ff; --danger: #ff3d5a; --success: #00e09e; --warn: #ffb547;
+            --text: #e8ecf4; --muted: #6b7280;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* HEADER */
+        header {
+            border-bottom: 1px solid var(--border);
+            background: rgba(10,12,16,.85);
+            backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 100;
+            padding: 0 2rem;
+            display: flex; align-items: center;
+            height: 60px;
+        }
+        .logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .logo span { color: var(--text); }
+        .pill {
+            margin-left: auto;
+            background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.2);
+            color: var(--accent); font-family: 'DM Mono', monospace; font-size: .7rem;
+            padding: .2rem .7rem; border-radius: 100px;
+        }
+
+        /* LAYOUT */
+        .container { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+        .page-title { font-family: 'Syne', sans-serif; font-size: clamp(1.6rem,3vw,2.4rem); font-weight: 800; letter-spacing: -1px; margin-bottom: .4rem; }
+        .page-sub   { color: var(--muted); font-size: .9rem; margin-bottom: 2.5rem; }
+
+        /* CARDS */
+        .card {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.75rem;
+            box-shadow: 0 0 0 1px var(--border), 0 4px 32px rgba(0,0,0,.5);
+        }
+        .card-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
+        .card-sub   { font-size: .8rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+        /* STAT GRID */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+        .stat-card {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.25rem 1.5rem;
+            position: relative; overflow: hidden;
+            transition: transform .2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--c, var(--accent)); }
+        .stat-card .label { font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .6rem; }
+        .stat-card .value { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--c, var(--accent)); line-height: 1; }
+        .stat-card .sub   { font-size: .75rem; color: var(--muted); margin-top: .3rem; }
+
+        /* TWO COL */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+        @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* FORM */
+        label.fl { display: block; font-size: .78rem; font-weight: 500; color: var(--muted); margin-bottom: .4rem; }
+        input[type=number], select {
+            width: 100%; background: var(--bg3); border: 1px solid var(--border);
+            color: var(--text); border-radius: 8px; padding: .65rem .9rem;
+            font-family: 'DM Sans', sans-serif; font-size: .9rem;
+            outline: none; appearance: none; margin-bottom: 1rem;
+            transition: border-color .2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+            padding: .7rem 1.4rem; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: .875rem;
+            cursor: pointer; border: none; text-decoration: none;
+            transition: opacity .2s, transform .15s;
+        }
+        .btn:hover { opacity: .85; transform: translateY(-1px); }
+        .btn-primary   { background: var(--accent); color: #000; width: 100%; margin-top: .5rem; }
+        .btn-outline   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-danger    { background: transparent; border: 1px solid var(--danger);  color: var(--danger); }
+        .btn-secondary { background: var(--bg3);   border: 1px solid var(--border); color: var(--text); }
+        .btn.active-f  { background: var(--accent); color: #000; }
+        .btn.active-d  { background: var(--danger); color: #fff; }
+
+        /* PREDICTION */
+        .pred-box { margin-top: 1.2rem; border-radius: 10px; padding: 1rem 1.2rem; border: 1px solid; }
+        .pred-box.safe  { border-color: var(--success); background: rgba(0,224,158,.06); }
+        .pred-box.risky { border-color: var(--danger);  background: rgba(255,61,90,.06); }
+        .pred-box.err   { border-color: var(--warn);    background: rgba(255,181,71,.06); }
+        .pred-box h5  { font-family: 'Syne', sans-serif; font-size: .95rem; margin-bottom: .4rem; }
+        .pred-box p   { font-size: .82rem; color: var(--muted); }
+        .pred-prob    { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 500; margin: .3rem 0; }
+
+        /* PROGRESS BARS */
+        .prog-label { display: flex; justify-content: space-between; font-size: .78rem; margin-bottom: .3rem; }
+        .prog-bar-bg { background: var(--bg3); border-radius: 100px; height: 6px; overflow: hidden; margin-bottom: .9rem; }
+        .prog-bar    { height: 100%; border-radius: 100px; transition: width .6s ease; }
+
+        /* SPLIT BAR */
+        .split-bar { display: flex; height: 10px; border-radius: 100px; overflow: hidden; margin-bottom: .5rem; }
+        .split-bar .seg-s { background: var(--success); }
+        .split-bar .seg-f { background: var(--danger); }
+        .split-legend { display: flex; gap: 1.5rem; font-size: .75rem; color: var(--muted); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        /* TABLE */
+        .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; }
+        .table-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+        .table-header h4 { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; }
+        .table-header p  { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+        .filter-btns { display: flex; gap: .6rem; }
+
+        .adv-filter {
+            background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+            padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+            display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;
+        }
+        @media (max-width: 600px) { .adv-filter { grid-template-columns: 1fr; } }
+        .adv-filter input, .adv-filter select { margin-bottom: 0; }
+
+        .tbl-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+        th {
+            font-family: 'DM Mono', monospace; font-size: .65rem;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: var(--muted); padding: .7rem .9rem; text-align: left; white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+        td { padding: .7rem .9rem; border-bottom: 1px solid rgba(35,39,51,.6); vertical-align: middle; }
+        tr.row-fraud { background: rgba(255,61,90,.05); }
+        tr:hover { background: rgba(255,255,255,.02); }
+        .mono { font-family: 'DM Mono', monospace; font-size: .8rem; }
+
+        .badge { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem; border-radius: 6px; font-size: .72rem; font-weight: 500; }
+        .badge-fraud   { background: rgba(255,61,90,.15);  color: var(--danger);  border: 1px solid rgba(255,61,90,.25); }
+        .badge-safe    { background: rgba(0,224,158,.12);  color: var(--success); border: 1px solid rgba(0,224,158,.2); }
+        .badge-channel { background: rgba(0,229,255,.08);  color: var(--accent);  border: 1px solid rgba(0,229,255,.15); }
+
+        .empty-state { text-align: center; padding: 3.5rem 1rem; color: var(--muted); }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+        .empty-state h5 { font-family: 'Syne', sans-serif; color: var(--text); margin-bottom: .4rem; }
+        .alert-warn {
+            background: rgba(255,181,71,.07); border: 1px solid rgba(255,181,71,.25);
+            color: var(--warn); border-radius: 10px; padding: .9rem 1.2rem;
+            font-size: .85rem; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Fraud<span>Shield</span></div>
+    <div class="pill">● LIVE SYSTEM</div>
+</header>
+
+<div class="container">
+    <div class="page-title">Transaction Intelligence Dashboard</div>
+    <div class="page-sub">Naive Bayes fraud detection · Rule-based flagging · Real-time risk scoring</div>
+
+    <!-- MAIN STAT CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card" style="--c:var(--accent)">
+            <div class="label">Total Transactions</div>
+            <div class="value">{{ stats.total_transactions }}</div>
+            <div class="sub">Dataset size</div>
+        </div>
+        <div class="stat-card" style="--c:var(--danger)">
+            <div class="label">Flagged Fraud</div>
+            <div class="value">{{ stats.fraud_transactions }}</div>
+            <div class="sub">{{ stats.fraud_rate }}% of all transactions</div>
+        </div>
+        <div class="stat-card" style="--c:var(--success)">
+            <div class="label">Average Value</div>
+            <div class="value">${{ stats.avg_amount }}</div>
+            <div class="sub">Per transaction</div>
+        </div>
+        <div class="stat-card" style="--c:var(--warn)">
+            <div class="label">Max Transaction</div>
+            <div class="value">${{ stats.max_amount }}</div>
+            <div class="sub">Single highest value</div>
+        </div>
+    </div>
+
+    <!-- RULE BREAKDOWN CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card" style="--c:#a78bfa">
+            <div class="label">🔑 High Login Attempts</div>
+            <div class="value" style="color:#a78bfa">{{ stats.rule_stats.high_login }}</div>
+            <div class="sub">LoginAttempts &gt; 3</div>
+        </div>
+        <div class="stat-card" style="--c:var(--danger)">
+            <div class="label">💸 Transaction Over Balance</div>
+            <div class="value" style="color:var(--danger)">{{ stats.rule_stats.exceeds_bal }}</div>
+            <div class="sub">Amount &gt; AccountBalance</div>
+        </div>
+        <div class="stat-card" style="--c:var(--warn)">
+            <div class="label">⚡ Fast Transaction</div>
+            <div class="value" style="color:var(--warn)">{{ stats.rule_stats.fast_tx }}</div>
+            <div class="sub">Duration &lt; 30 seconds</div>
+        </div>
+        <div class="stat-card" style="--c:#f472b6">
+            <div class="label">🔁 Frequent Transactions</div>
+            <div class="value" style="color:#f472b6">{{ stats.rule_stats.frequent_tx }}</div>
+            <div class="sub">Within &lt; 120 sec of previous</div>
+        </div>
+    </div>
+
+    <!-- PREDICTOR + ANALYTICS -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-title">🔮 Naive Bayes Predictor</div>
+            <div class="card-sub">Simulate a transaction and get a real-time fraud probability score.</div>
+            <form method="POST" action="/">
+                <label class="fl">Transaction Amount ($)</label>
+                <input type="number" step="0.01" name="amount" placeholder="e.g. 250.50" required
+                       value="{{ prediction.amount if prediction and not prediction.error else '' }}">
+                <label class="fl">Transaction Channel</label>
+                <select name="channel">
+                    {% for ch in channels %}
+                        <option value="{{ ch }}" {% if prediction and not prediction.error and prediction.channel == ch %}selected{% endif %}>{{ ch }}</option>
+                    {% endfor %}
+                </select>
+                <label class="fl">Customer Occupation</label>
+                <select name="occupation">
+                    {% for occ in occupations %}
+                        <option value="{{ occ }}" {% if prediction and not prediction.error and prediction.occupation == occ %}selected{% endif %}>{{ occ }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Analyze Transaction Risk →</button>
+            </form>
+            {% if prediction %}
+                {% if prediction.error %}
+                    <div class="pred-box err">
+                        <h5>⚠ Error</h5>
+                        <p>{{ prediction.error }}</p>
+                    </div>
+                {% elif 'HIGH RISK' in prediction.status %}
+                    <div class="pred-box risky">
+                        <h5>{{ prediction.status }}</h5>
+                        <div class="pred-prob" style="color:var(--danger)">{{ prediction.probability }}%</div>
+                        <p>Fraud probability · evaluated via Gaussian Naive Bayes</p>
+                    </div>
+                {% else %}
+                    <div class="pred-box safe">
+                        <h5>{{ prediction.status }}</h5>
+                        <div class="pred-prob" style="color:var(--success)">{{ prediction.probability }}%</div>
+                        <p>Fraud probability · evaluated via Gaussian Naive Bayes</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 Data Distribution</div>
+            <div class="card-sub">Visual breakdown of dataset split and channel volumes.</div>
+            <div style="margin-bottom:1.8rem">
+                <div class="prog-label"><span>Safety Split</span></div>
+                <div class="split-bar">
+                    <div class="seg-s" data-width="{{ stats.safe_rate }}"></div>
+                    <div class="seg-f" data-width="{{ stats.fraud_rate }}"></div>
+                </div>
+                <div class="split-legend">
+                    <span><i class="dot" style="background:var(--success)"></i> Safe {{ stats.safe_rate }}%</span>
+                    <span><i class="dot" style="background:var(--danger)"></i> Fraud {{ stats.fraud_rate }}%</span>
+                </div>
+            </div>
+            <div class="prog-label" style="margin-bottom:.8rem"><span>Volume by Channel</span></div>
+            {% for channel, pct in stats.channels_pct.items() %}
+                <div class="prog-label">
+                    <span>{{ channel }}</span>
+                    <span style="color:var(--muted);font-family:'DM Mono',monospace">{{ pct }}%</span>
+                </div>
+                <div class="prog-bar-bg">
+                    <div class="prog-bar" data-width="{{ pct }}"></div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- TRANSACTION TABLE -->
+    <div class="table-card">
+        <div class="table-header">
+            <div>
+                <h4>🔍 Transaction Records</h4>
+                <p>Select a view and refine with advanced filters.</p>
+            </div>
+            <div class="filter-btns">
+                <a href="/?filter=all"   class="btn btn-outline {% if current_filter == 'all' %}active-f{% endif %}">All Rows</a>
+                <a href="/?filter=fraud" class="btn btn-danger  {% if current_filter == 'fraud' %}active-d{% endif %}">Fraud Only</a>
+            </div>
+        </div>
+
+        {% if current_filter %}
+            <form method="GET" action="/" class="adv-filter">
+                <input type="hidden" name="filter" value="{{ current_filter }}">
+                <div>
+                    <label class="fl">Min Amount ($)</label>
+                    <input type="number" name="min_amount" step="0.01" placeholder="e.g. 100"
+                           value="{{ min_amount if min_amount else '' }}">
+                </div>
+                <div>
+                    <label class="fl">Channel</label>
+                    <select name="search_channel">
+                        <option value="All">All Channels</option>
+                        {% for ch in channels %}
+                            <option value="{{ ch }}" {% if search_channel == ch %}selected{% endif %}>{{ ch }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-secondary">Apply</button>
+                </div>
+            </form>
+
+            {% if transactions %}
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tx ID</th><th>Account</th><th>Amount</th><th>Balance</th>
+                                <th>Login</th><th>Duration</th><th>Since Prev</th>
+                                <th>Channel</th><th>Location</th><th>Status</th><th>Fraud Reasons</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr class="{{ 'row-fraud' if tx.IsFraud == 1 else '' }}">
+                                <td class="mono">{{ tx.TransactionID }}</td>
+                                <td class="mono">{{ tx.AccountID }}</td>
+                                <td class="mono">${{ "%.2f"|format(tx.TransactionAmount) }}</td>
+                                <td class="mono">${{ "%.2f"|format(tx.AccountBalance) }}</td>
+                                <td class="mono">{{ tx.LoginAttempts }}</td>
+                                <td class="mono">{{ tx.TransactionDuration }}s</td>
+                                <td class="mono">
+                                    {% set s = tx.SecondsSincePrev %}
+                                    {% if s is not none and s == s %}
+                                        {% if s >= 86400 %}{{ "%.1f"|format(s/86400) }}d
+                                        {% elif s >= 3600 %}{{ "%.1f"|format(s/3600) }}h
+                                        {% elif s >= 60   %}{{ "%.1f"|format(s/60) }}m
+                                        {% else %}{{ "%.0f"|format(s) }}s{% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td><span class="badge badge-channel">{{ tx.Channel }}</span></td>
+                                <td>{{ tx.Location }}</td>
+                                <td>
+                                    {% if tx.IsFraud == 1 %}
+                                        <span class="badge badge-fraud">🔴 Fraud</span>
+                                    {% else %}
+                                        <span class="badge badge-safe">🟢 Safe</span>
+                                    {% endif %}
+                                </td>
+                                <td style="max-width:260px;font-size:.75rem;color:var(--danger)">{{ tx.FraudReasons }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert-warn">No transactions match the current filters.</div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <span class="icon">🛡️</span>
+                <h5>No view selected</h5>
+                <p>Click <strong>All Rows</strong> or <strong>Fraud Only</strong> above to load transaction data.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-width]').forEach(el => {
+            el.style.width = '0%';
+            setTimeout(() => el.style.width = el.dataset.width + '%', 100);
+        });
+    });
+</script>
+</body>
+</html>
